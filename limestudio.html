@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lime Studio — Build. Play. Create.</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Exo+2:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --lime: #7FFF00;
+  --lime-dim: #5cc400;
+  --cyan: #00E5FF;
+  --yellow: #CCFF00;
+  --dark: #060a00;
+  --dark2: #0c1400;
+  --dark3: #111a00;
+  --panel: rgba(127,255,0,0.04);
+  --border: rgba(127,255,0,0.12);
+  --text: #d4f0a0;
+  --muted: #6a8840;
+  --grid-color: rgba(127,255,0,0.04);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Exo 2', sans-serif;
+  background: var(--dark);
+  color: var(--text);
+  overflow-x: hidden;
+  cursor: none;
+}
+
+.cursor {
+  position: fixed; width: 12px; height: 12px;
+  background: var(--lime); border-radius: 50%;
+  pointer-events: none; z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: width 0.2s, height 0.2s, background 0.2s;
+  mix-blend-mode: screen;
+}
+.cursor-ring {
+  position: fixed; width: 36px; height: 36px;
+  border: 1px solid rgba(127,255,0,0.4); border-radius: 50%;
+  pointer-events: none; z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: all 0.12s ease;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+}
+
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 1;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.025) 2px, rgba(0,0,0,0.025) 4px);
+  pointer-events: none;
+}
+
+/* NAV */
+nav {
+  position: fixed; top: 0; width: 100%; z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.2rem 2.5rem;
+  background: rgba(6,10,0,0.88);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo { display: flex; align-items: center; gap: 0.8rem; text-decoration: none; }
+.nav-logo img {
+  width: 36px; height: 36px; border-radius: 50%;
+  box-shadow: 0 0 16px rgba(127,255,0,0.5), 0 0 32px rgba(0,229,255,0.2);
+  animation: logo-pulse 2.5s ease-in-out infinite alternate;
+}
+@keyframes logo-pulse {
+  from { box-shadow: 0 0 12px rgba(127,255,0,0.4), 0 0 24px rgba(0,229,255,0.15); }
+  to   { box-shadow: 0 0 24px rgba(127,255,0,0.7), 0 0 48px rgba(0,229,255,0.3); }
+}
+.nav-logo-text { font-family: 'Exo 2', sans-serif; font-weight: 900; font-size: 1.1rem; color: var(--lime); letter-spacing: 0.08em; text-transform: uppercase; }
+.nav-center { display: flex; gap: 0.25rem; }
+.nav-link { font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--muted); text-decoration: none; text-transform: uppercase; letter-spacing: 0.1em; padding: 0.5rem 1rem; border: 1px solid transparent; border-radius: 4px; transition: all 0.2s; }
+.nav-link:hover { color: var(--lime); border-color: var(--border); background: var(--panel); }
+.nav-cta { font-family: 'Space Mono', monospace; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 0.55rem 1.3rem; border: 1px solid var(--lime); color: var(--lime); background: transparent; border-radius: 4px; cursor: none; text-decoration: none; transition: all 0.2s; position: relative; overflow: hidden; }
+.nav-cta::before { content: ''; position: absolute; inset: 0; background: var(--lime); transform: scaleX(0); transform-origin: left; transition: transform 0.2s ease; }
+.nav-cta:hover::before { transform: scaleX(1); }
+.nav-cta span { position: relative; z-index: 1; }
+.nav-cta:hover span { color: var(--dark); }
+
+/* HERO */
+.hero { min-height: 100vh; display: flex; align-items: center; padding: 8rem 2.5rem 4rem; position: relative; overflow: hidden; }
+.hero-glow-1 { position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(127,255,0,0.12) 0%, transparent 70%); top: -100px; left: -100px; pointer-events: none; z-index: 0; animation: glow-drift 6s ease-in-out infinite alternate; }
+.hero-glow-2 { position: absolute; width: 500px; height: 500px; background: radial-gradient(circle, rgba(0,229,255,0.08) 0%, transparent 70%); bottom: 0; right: 10%; pointer-events: none; z-index: 0; animation: glow-drift 8s ease-in-out infinite alternate-reverse; }
+@keyframes glow-drift { from { transform: translate(0, 0); } to { transform: translate(40px, 30px); } }
+
+.hero-content { position: relative; z-index: 2; max-width: 780px; }
+.hero-badge { display: inline-flex; align-items: center; gap: 0.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--cyan); border: 1px solid rgba(0,229,255,0.25); background: rgba(0,229,255,0.05); padding: 0.4rem 0.9rem; border-radius: 2px; margin-bottom: 2rem; }
+.hero-badge .blink { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); animation: blink 1.2s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+.hero-title { font-family: 'Exo 2', sans-serif; font-weight: 900; font-size: clamp(3rem, 8vw, 7rem); line-height: 0.92; letter-spacing: -0.03em; margin-bottom: 2rem; }
+.hero-title .t1 { display: block; color: #e8f5d0; }
+.hero-title .t2 { display: block; background: linear-gradient(90deg, var(--lime) 0%, var(--cyan) 60%, var(--yellow) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-title .t3 { display: block; color: #e8f5d0; }
+.hero-sub { font-size: 1.1rem; line-height: 1.7; color: var(--muted); max-width: 520px; font-weight: 300; margin-bottom: 3rem; }
+.hero-sub strong { color: var(--text); font-weight: 600; }
+.hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+
+.btn-main { font-family: 'Space Mono', monospace; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 0.9rem 2rem; background: var(--lime); color: var(--dark); border: none; border-radius: 4px; cursor: none; text-decoration: none; transition: all 0.2s; display: inline-block; box-shadow: 0 0 30px rgba(127,255,0,0.3); }
+.btn-main:hover { background: var(--cyan); box-shadow: 0 0 40px rgba(0,229,255,0.4); transform: translateY(-2px); }
+.btn-outline { font-family: 'Space Mono', monospace; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 0.9rem 2rem; background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 4px; cursor: none; text-decoration: none; transition: all 0.2s; display: inline-block; }
+.btn-outline:hover { border-color: var(--lime); color: var(--lime); }
+
+.hero-visual { position: absolute; right: 5%; top: 50%; transform: translateY(-50%); z-index: 2; display: flex; align-items: center; justify-content: center; }
+.hero-logo-big { width: 300px; height: 300px; border-radius: 50%; box-shadow: 0 0 60px rgba(127,255,0,0.3), 0 0 120px rgba(0,229,255,0.15), 0 0 200px rgba(127,255,0,0.1); animation: hero-float 4s ease-in-out infinite alternate; position: relative; z-index: 2; }
+@keyframes hero-float { from { transform: translateY(0px); } to { transform: translateY(-18px); } }
+.hero-ring { position: absolute; border-radius: 50%; border: 1px solid; animation: spin-ring linear infinite; }
+.hero-ring-1 { width: 360px; height: 360px; border-color: rgba(127,255,0,0.15); animation-duration: 20s; }
+.hero-ring-2 { width: 420px; height: 420px; border-color: rgba(0,229,255,0.1); border-style: dashed; animation-duration: 30s; animation-direction: reverse; }
+.hero-ring-3 { width: 480px; height: 480px; border-color: rgba(204,255,0,0.06); animation-duration: 40s; }
+@keyframes spin-ring { to { transform: rotate(360deg); } }
+.hero-tag { position: absolute; z-index: 3; font-family: 'Space Mono', monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; padding: 0.4rem 0.8rem; border-radius: 3px; white-space: nowrap; animation: hero-float 4s ease-in-out infinite alternate; }
+.hero-tag-1 { top: 8%; left: -15%; background: rgba(127,255,0,0.1); border: 1px solid rgba(127,255,0,0.3); color: var(--lime); animation-delay: -1s; }
+.hero-tag-2 { bottom: 15%; right: -10%; background: rgba(0,229,255,0.1); border: 1px solid rgba(0,229,255,0.3); color: var(--cyan); animation-delay: -2s; }
+.hero-tag-3 { bottom: 35%; left: -18%; background: rgba(204,255,0,0.08); border: 1px solid rgba(204,255,0,0.2); color: var(--yellow); animation-delay: -3s; }
+
+/* STATS */
+.stats-bar { position: relative; z-index: 2; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--panel); display: grid; grid-template-columns: repeat(4, 1fr); }
+.stat-item { padding: 2rem; border-right: 1px solid var(--border); text-align: center; transition: background 0.2s; }
+.stat-item:last-child { border-right: none; }
+.stat-item:hover { background: rgba(127,255,0,0.06); }
+.stat-num { font-family: 'Exo 2', sans-serif; font-weight: 900; font-size: 2.4rem; line-height: 1; letter-spacing: -0.03em; background: linear-gradient(135deg, var(--lime), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.4rem; }
+.stat-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
+
+/* SECTIONS */
+section { padding: 7rem 2.5rem; position: relative; z-index: 2; }
+.section-tag { font-family: 'Space Mono', monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--lime); display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.2rem; }
+.section-tag::before { content: ''; width: 24px; height: 1px; background: var(--lime); }
+.section-title { font-family: 'Exo 2', sans-serif; font-weight: 900; font-size: clamp(2rem, 5vw, 3.8rem); line-height: 1; letter-spacing: -0.03em; color: #e8f5d0; margin-bottom: 1rem; }
+.section-title span { color: var(--lime); }
+
+/* PRODUCTS */
+.products-intro { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 2rem; margin-bottom: 4rem; }
+.products-intro p { max-width: 400px; color: var(--muted); line-height: 1.7; font-weight: 300; }
+.products-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: auto auto; gap: 1.5px; background: var(--border); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.product-card { background: var(--dark2); padding: 2.5rem; position: relative; overflow: hidden; transition: background 0.3s; cursor: none; }
+.product-card:hover { background: var(--dark3); }
+.product-card.featured { grid-column: span 2; }
+.product-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; opacity: 0; transition: opacity 0.3s; }
+.engine-card::before { background: linear-gradient(90deg, var(--lime), var(--cyan)); }
+.games-card::before { background: linear-gradient(90deg, var(--cyan), var(--yellow)); }
+.tools-card::before { background: linear-gradient(90deg, var(--yellow), var(--lime)); }
+.product-card:hover::before { opacity: 1; }
+.product-icon { width: 52px; height: 52px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.5rem; border: 1px solid var(--border); }
+.engine-card .product-icon { background: rgba(127,255,0,0.08); border-color: rgba(127,255,0,0.2); }
+.games-card .product-icon { background: rgba(0,229,255,0.08); border-color: rgba(0,229,255,0.2); }
+.tools-card .product-icon { background: rgba(204,255,0,0.08); border-color: rgba(204,255,0,0.2); }
+.misc-card .product-icon { background: rgba(127,255,0,0.05); border-color: var(--border); }
+.product-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.5rem; }
+.engine-card .product-label { color: var(--lime); }
+.games-card .product-label { color: var(--cyan); }
+.tools-card .product-label { color: var(--yellow); }
+.misc-card .product-label { color: var(--muted); }
+.product-name { font-family: 'Exo 2', sans-serif; font-weight: 800; font-size: 1.5rem; color: #e8f5d0; letter-spacing: -0.02em; margin-bottom: 0.75rem; }
+.product-card.featured .product-name { font-size: 2rem; }
+.product-desc { color: var(--muted); font-size: 0.9rem; line-height: 1.65; font-weight: 300; }
+.product-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.5rem; }
+.ptag { font-family: 'Space Mono', monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; padding: 0.3rem 0.7rem; border-radius: 2px; border: 1px solid var(--border); color: var(--muted); transition: all 0.2s; }
+.product-card:hover .ptag { border-color: rgba(127,255,0,0.2); color: var(--text); }
+.product-arrow { position: absolute; bottom: 2rem; right: 2rem; font-size: 1.2rem; color: var(--border); transition: all 0.3s; }
+.product-card:hover .product-arrow { color: var(--lime); transform: translate(4px, -4px); }
+.product-bg-num { position: absolute; bottom: -10px; right: 20px; font-family: 'Exo 2', sans-serif; font-weight: 900; font-size: 8rem; line-height: 1; color: rgba(127,255,0,0.03); pointer-events: none; letter-spacing: -0.05em; }
+
+/* ENGINE */
+.engine-section { background: var(--dark2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.engine-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
+.engine-visual { position: relative; height: 420px; border: 1px solid var(--border); border-radius: 8px; background: var(--dark); overflow: hidden; }
+.engine-visual-inner { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.eng-center { position: relative; display: flex; align-items: center; justify-content: center; }
+.eng-core { width: 80px; height: 80px; border-radius: 50%; background: conic-gradient(var(--lime), var(--cyan), var(--yellow), var(--lime)); animation: spin-ring 4s linear infinite; display: flex; align-items: center; justify-content: center; }
+.eng-core-inner { width: 60px; height: 60px; border-radius: 50%; background: var(--dark); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+.eng-orbit { position: absolute; border-radius: 50%; border: 1px solid; display: flex; align-items: flex-start; justify-content: center; animation: spin-ring linear infinite; }
+.eng-orbit-1 { width: 160px; height: 160px; border-color: rgba(127,255,0,0.2); animation-duration: 6s; }
+.eng-orbit-2 { width: 240px; height: 240px; border-color: rgba(0,229,255,0.15); animation-duration: 10s; animation-direction: reverse; }
+.eng-orbit-3 { width: 320px; height: 320px; border-color: rgba(204,255,0,0.08); animation-duration: 15s; }
+.eng-dot { width: 10px; height: 10px; border-radius: 50%; position: absolute; top: -5px; left: 50%; transform: translateX(-50%); }
+.eng-dot-lime { background: var(--lime); box-shadow: 0 0 10px var(--lime); }
+.eng-dot-cyan { background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+.eng-dot-yellow { background: var(--yellow); box-shadow: 0 0 10px var(--yellow); }
+.engine-corner { position: absolute; font-family: 'Space Mono', monospace; font-size: 0.55rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+.ec-tl { top: 1rem; left: 1rem; }
+.ec-tr { top: 1rem; right: 1rem; text-align: right; }
+.ec-bl { bottom: 1rem; left: 1rem; }
+.ec-br { bottom: 1rem; right: 1rem; text-align: right; }
+.eng-bracket { position: absolute; width: 16px; height: 16px; border-color: rgba(127,255,0,0.3); border-style: solid; }
+.eb-tl { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+.eb-tr { top: 8px; right: 8px; border-width: 1px 1px 0 0; }
+.eb-bl { bottom: 8px; left: 8px; border-width: 0 0 1px 1px; }
+.eb-br { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+.engine-features { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2.5rem; }
+.engine-feat { display: flex; align-items: flex-start; gap: 1rem; padding: 1.2rem; border: 1px solid var(--border); border-radius: 6px; transition: all 0.2s; background: rgba(127,255,0,0.02); }
+.engine-feat:hover { border-color: rgba(127,255,0,0.25); background: rgba(127,255,0,0.05); }
+.feat-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+.feat-title { font-family: 'Exo 2', sans-serif; font-weight: 700; font-size: 0.95rem; color: #e8f5d0; margin-bottom: 0.3rem; }
+.feat-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.5; font-weight: 300; }
+
+/* TOOLS */
+.tools-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 3.5rem; }
+.tool-card { border: 1px solid var(--border); border-radius: 6px; padding: 1.5rem; background: var(--panel); transition: all 0.25s; position: relative; overflow: hidden; cursor: none; }
+.tool-card:hover { border-color: rgba(127,255,0,0.3); background: rgba(127,255,0,0.05); transform: translateY(-3px); }
+.tool-emoji { font-size: 1.8rem; margin-bottom: 1rem; display: block; }
+.tool-name { font-family: 'Exo 2', sans-serif; font-weight: 700; font-size: 1rem; color: #e8f5d0; margin-bottom: 0.4rem; }
+.tool-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.55; font-weight: 300; }
+.tool-status { display: inline-block; margin-top: 0.8rem; font-family: 'Space Mono', monospace; font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.1em; padding: 0.2rem 0.5rem; border-radius: 2px; }
+.status-live { background: rgba(127,255,0,0.12); color: var(--lime); border: 1px solid rgba(127,255,0,0.2); }
+.status-beta { background: rgba(0,229,255,0.1); color: var(--cyan); border: 1px solid rgba(0,229,255,0.2); }
+.status-soon { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border); }
+
+/* GAMES */
+.games-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 3.5rem; }
+.game-card { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--dark2); transition: all 0.3s; cursor: none; position: relative; }
+.game-card:hover { border-color: rgba(0,229,255,0.3); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(0,229,255,0.05); }
+.game-banner { height: 200px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.game-1-banner { background: linear-gradient(135deg, #001208 0%, #003a20 50%, #001208 100%); }
+.game-2-banner { background: linear-gradient(135deg, #000a1a 0%, #001a3a 50%, #000a1a 100%); }
+.game-banner-shapes { position: absolute; inset: 0; overflow: hidden; }
+.gbs { position: absolute; border-radius: 50%; filter: blur(40px); }
+.game-badge { position: absolute; top: 1rem; left: 1rem; font-family: 'Space Mono', monospace; font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.12em; padding: 0.3rem 0.7rem; border-radius: 2px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
+.game-1-badge { color: var(--lime); border: 1px solid rgba(127,255,0,0.3); }
+.game-2-badge { color: var(--cyan); border: 1px solid rgba(0,229,255,0.3); }
+.game-info { padding: 1.5rem; }
+.game-name { font-family: 'Exo 2', sans-serif; font-weight: 800; font-size: 1.3rem; color: #e8f5d0; margin-bottom: 0.4rem; }
+.game-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.55; font-weight: 300; margin-bottom: 1rem; }
+.game-meta { display: flex; gap: 1rem; }
+.game-meta-item { font-family: 'Space Mono', monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.game-meta-item span { color: var(--text); display: block; margin-top: 0.1rem; }
+
+/* CTA */
+.cta-section { text-align: center; padding: 8rem 2.5rem; border-top: 1px solid var(--border); position: relative; overflow: hidden; }
+.cta-bg-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Exo 2', sans-serif; font-weight: 900; font-size: 22vw; line-height: 1; letter-spacing: -0.05em; color: rgba(127,255,0,0.02); pointer-events: none; white-space: nowrap; }
+.cta-section .section-title { font-size: clamp(2.5rem, 6vw, 5rem); margin-bottom: 1.5rem; position: relative; z-index: 1; }
+.cta-section p { color: var(--muted); max-width: 440px; margin: 0 auto 3rem; line-height: 1.7; font-weight: 300; position: relative; z-index: 1; }
+.cta-section .hero-actions { justify-content: center; position: relative; z-index: 1; }
+.terminal-box { display: inline-flex; align-items: center; gap: 0.5rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--lime); padding: 0.6rem 1.2rem; border: 1px solid rgba(127,255,0,0.2); border-radius: 4px; background: rgba(127,255,0,0.04); text-decoration: none; transition: all 0.2s; }
+.terminal-box:hover { border-color: var(--lime); background: rgba(127,255,0,0.08); }
+
+/* FOOTER */
+footer { border-top: 1px solid var(--border); padding: 3rem 2.5rem; position: relative; z-index: 2; }
+.footer-top { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; padding-bottom: 3rem; border-bottom: 1px solid var(--border); }
+.footer-brand p { font-size: 0.85rem; color: var(--muted); line-height: 1.6; font-weight: 300; max-width: 260px; margin-top: 1rem; }
+.footer-col-title { font-family: 'Space Mono', monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--lime); margin-bottom: 1.2rem; }
+.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; }
+.footer-col ul a { text-decoration: none; font-size: 0.85rem; color: var(--muted); transition: color 0.2s; font-weight: 300; }
+.footer-col ul a:hover { color: var(--text); }
+.footer-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+.footer-copy { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: rgba(106,136,64,0.5); }
+.footer-socials { display: flex; gap: 1rem; }
+.footer-socials a { font-family: 'Space Mono', monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+.footer-socials a:hover { color: var(--lime); }
+
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 1100px) {
+  .hero-visual { display: none; }
+  .hero-content { max-width: 100%; }
+}
+@media (max-width: 900px) {
+  .engine-inner { grid-template-columns: 1fr; }
+  .engine-visual { display: none; }
+  .products-grid { grid-template-columns: 1fr; }
+  .product-card.featured { grid-column: span 1; }
+  .tools-grid { grid-template-columns: 1fr 1fr; }
+  .games-row { grid-template-columns: 1fr; }
+  .stats-bar { grid-template-columns: 1fr 1fr; }
+  .footer-top { grid-template-columns: 1fr 1fr; }
+  nav { padding: 1rem 1.5rem; }
+  .nav-center { display: none; }
+  section { padding: 5rem 1.5rem; }
+}
+@media (max-width: 500px) {
+  .tools-grid { grid-template-columns: 1fr; }
+  .footer-top { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <img src="/mnt/user-data/uploads/Lime_Studio_Logo.png" alt="Lime Studio">
+    <span class="nav-logo-text">Lime Studio</span>
+  </a>
+  <div class="nav-center">
+    <a class="nav-link" href="#products">Products</a>
+    <a class="nav-link" href="#engine">Engine</a>
+    <a class="nav-link" href="#games">Games</a>
+    <a class="nav-link" href="#tools">Tools</a>
+  </div>
+  <a class="nav-cta" href="#contact"><span>Get Started</span></a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-glow-1"></div>
+  <div class="hero-glow-2"></div>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="blink"></span>
+      Now live — Lime Engine v2.0
+    </div>
+    <h1 class="hero-title">
+      <span class="t1">One Studio.</span>
+      <span class="t2">Infinite Power.</span>
+      <span class="t3">Your Universe.</span>
+    </h1>
+    <p class="hero-sub">
+      Lime Studio is the home of a <strong>game engine</strong>, original <strong>games</strong>, and a growing ecosystem of <strong>developer tools</strong> — everything you need to build, play, and create.
+    </p>
+    <div class="hero-actions">
+      <a class="btn-main" href="#engine">Explore the Engine</a>
+      <a class="btn-outline" href="#products">See all products</a>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="hero-ring hero-ring-3"></div>
+    <div class="hero-ring hero-ring-2"></div>
+    <div class="hero-ring hero-ring-1"></div>
+    <img class="hero-logo-big" src="/mnt/user-data/uploads/Lime_Studio_Logo.png" alt="Lime Studio">
+    <div class="hero-tag hero-tag-1">⚙️ Lime Engine</div>
+    <div class="hero-tag hero-tag-2">🎮 Games Studio</div>
+    <div class="hero-tag hero-tag-3">🛠 Dev Tools Hub</div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-bar reveal">
+  <div class="stat-item"><div class="stat-num">1</div><div class="stat-label">Game Engine</div></div>
+  <div class="stat-item"><div class="stat-num">12+</div><div class="stat-label">Tools & Apps</div></div>
+  <div class="stat-item"><div class="stat-num">5+</div><div class="stat-label">Games Released</div></div>
+  <div class="stat-item"><div class="stat-num">∞</div><div class="stat-label">Possibilities</div></div>
+</div>
+
+<!-- PRODUCTS -->
+<section id="products">
+  <div class="products-intro reveal">
+    <div>
+      <div class="section-tag">Our ecosystem</div>
+      <h2 class="section-title">Everything we<br><span>build.</span></h2>
+    </div>
+    <p>From a powerful game engine to ready-to-play titles and a full suite of developer tools — Lime Studio is a complete creative ecosystem.</p>
+  </div>
+  <div class="products-grid reveal">
+    <div class="product-card engine-card featured">
+      <div class="product-icon">⚙️</div>
+      <div class="product-label">Flagship Product</div>
+      <div class="product-name">Lime Engine</div>
+      <div class="product-desc">A modern, high-performance game engine built for speed and creativity. From 2D platformers to sprawling 3D worlds — Lime Engine handles it all. Intuitive, extensible, and entirely yours.</div>
+      <div class="product-tags">
+        <span class="ptag">Cross-platform</span>
+        <span class="ptag">2D / 3D</span>
+        <span class="ptag">Scripting API</span>
+        <span class="ptag">Visual Editor</span>
+        <span class="ptag">Physics</span>
+        <span class="ptag">Open Source</span>
+      </div>
+      <div class="product-arrow">↗</div>
+      <div class="product-bg-num">01</div>
+    </div>
+    <div class="product-card tools-card">
+      <div class="product-icon">🛠</div>
+      <div class="product-label">Multi-Tool Hub</div>
+      <div class="product-name">Lime Tools</div>
+      <div class="product-desc">A growing suite of developer and creator utilities — asset converters, code helpers, project managers, and more. All in one place.</div>
+      <div class="product-tags">
+        <span class="ptag">12+ Tools</span>
+        <span class="ptag">Web-based</span>
+        <span class="ptag">Free tier</span>
+      </div>
+      <div class="product-arrow">↗</div>
+      <div class="product-bg-num">02</div>
+    </div>
+    <div class="product-card games-card featured">
+      <div class="product-icon">🎮</div>
+      <div class="product-label">Games Studio</div>
+      <div class="product-name">Lime Games</div>
+      <div class="product-desc">Original titles crafted in-house using Lime Engine. Action, puzzle, adventure — our game library is always growing. Built by us, powered by the same engine you can use.</div>
+      <div class="product-tags">
+        <span class="ptag">5+ Games</span>
+        <span class="ptag">PC & Mobile</span>
+        <span class="ptag">Indie Spirit</span>
+      </div>
+      <div class="product-arrow">↗</div>
+      <div class="product-bg-num">03</div>
+    </div>
+    <div class="product-card misc-card">
+      <div class="product-icon">🌐</div>
+      <div class="product-label">Community</div>
+      <div class="product-name">Lime Hub</div>
+      <div class="product-desc">Forums, asset marketplace, and a network of creators building with Lime tech.</div>
+      <div class="product-tags">
+        <span class="ptag">Marketplace</span>
+        <span class="ptag">Forums</span>
+      </div>
+      <div class="product-arrow">↗</div>
+      <div class="product-bg-num">04</div>
+    </div>
+  </div>
+</section>
+
+<!-- ENGINE -->
+<section id="engine" class="engine-section">
+  <div class="engine-inner">
+    <div class="reveal">
+      <div class="section-tag">Game Engine</div>
+      <h2 class="section-title">Built to<br><span>create worlds.</span></h2>
+      <p style="color:var(--muted); line-height:1.7; font-weight:300; margin-bottom:2rem; max-width:420px;">Lime Engine is the core of everything we build. Fast, flexible and genuinely fun to work with — whether you're making your first game or your fiftieth.</p>
+      <a class="btn-main" href="#" style="display:inline-block; text-decoration:none;">Download Engine</a>
+      <div class="engine-features">
+        <div class="engine-feat">
+          <div class="feat-icon">⚡</div>
+          <div><div class="feat-title">Blazing Fast Renderer</div><div class="feat-desc">Hardware-accelerated pipeline optimized for 60fps+ gameplay on all target platforms.</div></div>
+        </div>
+        <div class="engine-feat">
+          <div class="feat-icon">🧩</div>
+          <div><div class="feat-title">Visual Node Editor</div><div class="feat-desc">Build game logic visually or drop into the full scripting API — your workflow, your choice.</div></div>
+        </div>
+        <div class="engine-feat">
+          <div class="feat-icon">🌍</div>
+          <div><div class="feat-title">Export Everywhere</div><div class="feat-desc">Ship to Windows, macOS, Linux, Android, iOS, and Web from a single project.</div></div>
+        </div>
+        <div class="engine-feat">
+          <div class="feat-icon">🔌</div>
+          <div><div class="feat-title">Plugin Ecosystem</div><div class="feat-desc">Extend with community plugins or write your own using the open API.</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="reveal">
+      <div class="engine-visual">
+        <div class="eb-tl eng-bracket"></div>
+        <div class="eb-tr eng-bracket"></div>
+        <div class="eb-bl eng-bracket"></div>
+        <div class="eb-br eng-bracket"></div>
+        <div class="engine-corner ec-tl">LIME ENGINE v2.0</div>
+        <div class="engine-corner ec-tr">STATUS: ACTIVE</div>
+        <div class="engine-corner ec-bl">BUILD: 2026.04</div>
+        <div class="engine-corner ec-br">CORE: ONLINE</div>
+        <div class="engine-visual-inner">
+          <div class="eng-center">
+            <div class="eng-orbit eng-orbit-3"><div class="eng-dot eng-dot-yellow"></div></div>
+            <div class="eng-orbit eng-orbit-2"><div class="eng-dot eng-dot-cyan"></div></div>
+            <div class="eng-orbit eng-orbit-1"><div class="eng-dot eng-dot-lime"></div></div>
+            <div class="eng-core"><div class="eng-core-inner">⚙️</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GAMES -->
+<section id="games">
+  <div class="reveal">
+    <div class="section-tag">Games Studio</div>
+    <h2 class="section-title">Play what<br><span>we make.</span></h2>
+    <p style="color:var(--muted);max-width:480px;line-height:1.7;font-weight:300;margin-top:0.5rem;">Original titles developed in-house using Lime Engine — proof of what's possible with our tech.</p>
+  </div>
+  <div class="games-row reveal">
+    <div class="game-card">
+      <div class="game-banner game-1-banner">
+        <div class="game-banner-shapes">
+          <div class="gbs" style="width:200px;height:200px;background:rgba(127,255,0,0.15);top:-60px;left:-40px;"></div>
+          <div class="gbs" style="width:150px;height:150px;background:rgba(0,229,255,0.1);bottom:-30px;right:20px;"></div>
+        </div>
+        <span style="font-size:4rem;position:relative;z-index:1">🌿</span>
+        <div class="game-badge game-1-badge">Available Now</div>
+      </div>
+      <div class="game-info">
+        <div class="game-name">Verdant Depths</div>
+        <div class="game-desc">A lush action-adventure set in a bioluminescent underground world. Explore, fight, and grow in a living ecosystem powered entirely by Lime Engine.</div>
+        <div class="game-meta">
+          <div class="game-meta-item">Genre<span>Action / Adventure</span></div>
+          <div class="game-meta-item">Platform<span>PC · Mobile</span></div>
+          <div class="game-meta-item">Engine<span>Lime Engine</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="game-card">
+      <div class="game-banner game-2-banner">
+        <div class="game-banner-shapes">
+          <div class="gbs" style="width:180px;height:180px;background:rgba(0,229,255,0.12);top:-50px;right:-20px;"></div>
+          <div class="gbs" style="width:120px;height:120px;background:rgba(127,255,0,0.08);bottom:-20px;left:40px;"></div>
+        </div>
+        <span style="font-size:4rem;position:relative;z-index:1">🔷</span>
+        <div class="game-badge game-2-badge">Coming Soon</div>
+      </div>
+      <div class="game-info">
+        <div class="game-name">Prism Protocol</div>
+        <div class="game-desc">A mind-bending puzzle game where light is your weapon and shadow is your shield. Refract your way through 80 levels of pure logic.</div>
+        <div class="game-meta">
+          <div class="game-meta-item">Genre<span>Puzzle</span></div>
+          <div class="game-meta-item">Platform<span>PC · Web</span></div>
+          <div class="game-meta-item">Engine<span>Lime Engine</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<section id="tools" style="background:var(--dark2); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
+  <div class="reveal">
+    <div class="section-tag">Multi-Tool Hub</div>
+    <h2 class="section-title">Tools for<br><span>every creator.</span></h2>
+    <p style="color:var(--muted);max-width:480px;line-height:1.7;font-weight:300;margin-top:0.5rem;">The Lime Tools hub is your all-in-one utility belt — developer utilities, asset tools, productivity apps and more, all under one roof.</p>
+  </div>
+  <div class="tools-grid reveal">
+    <div class="tool-card"><span class="tool-emoji">🖼️</span><div class="tool-name">Asset Converter</div><div class="tool-desc">Convert sprites, textures, and audio into engine-ready formats instantly.</div><span class="tool-status status-live">Live</span></div>
+    <div class="tool-card"><span class="tool-emoji">📐</span><div class="tool-name">Sprite Slicer</div><div class="tool-desc">Auto-slice spritesheets and export animation frames in one click.</div><span class="tool-status status-live">Live</span></div>
+    <div class="tool-card"><span class="tool-emoji">🎵</span><div class="tool-name">Audio Trimmer</div><div class="tool-desc">Trim, loop, and optimize game audio without leaving your browser.</div><span class="tool-status status-live">Live</span></div>
+    <div class="tool-card"><span class="tool-emoji">🗺️</span><div class="tool-name">Tilemap Editor</div><div class="tool-desc">Design tilemaps visually and export directly into Lime Engine projects.</div><span class="tool-status status-beta">Beta</span></div>
+    <div class="tool-card"><span class="tool-emoji">⚡</span><div class="tool-name">Build Optimizer</div><div class="tool-desc">Analyze and reduce your game's final build size automatically.</div><span class="tool-status status-beta">Beta</span></div>
+    <div class="tool-card"><span class="tool-emoji">🤖</span><div class="tool-name">AI Scripter</div><div class="tool-desc">Generate game scripts and behaviors using AI — supercharge your workflow.</div><span class="tool-status status-soon">Coming Soon</span></div>
+  </div>
+  <div style="text-align:center; margin-top:3rem;" class="reveal">
+    <a class="terminal-box" href="#"><span style="color:var(--muted)">$</span> view all tools →</a>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="contact">
+  <div class="cta-bg-text">LIME</div>
+  <div class="section-tag" style="justify-content:center; margin-bottom:1.2rem;">Join us</div>
+  <h2 class="section-title">Start building<br>with <span>Lime.</span></h2>
+  <p>Whether you're here to play, create, or build — Lime Studio is your platform. Download the engine, try the tools, or jump straight into a game.</p>
+  <div class="hero-actions">
+    <a class="btn-main" href="#">Download Lime Engine</a>
+    <a class="btn-outline" href="#">Explore Tools Hub</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div style="display:flex;align-items:center;gap:0.8rem;">
+        <img src="/mnt/user-data/uploads/Lime_Studio_Logo.png" alt="" style="width:32px;height:32px;border-radius:50%;">
+        <span style="font-family:'Exo 2',sans-serif;font-weight:900;color:var(--lime);letter-spacing:0.08em;text-transform:uppercase;font-size:1rem;">Lime Studio</span>
+      </div>
+      <p>Game engine. Original games. Developer tools. One studio to power it all.</p>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Products</div>
+      <ul>
+        <li><a href="#">Lime Engine</a></li>
+        <li><a href="#">Lime Tools</a></li>
+        <li><a href="#">Lime Games</a></li>
+        <li><a href="#">Lime Hub</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Developers</div>
+      <ul>
+        <li><a href="#">Documentation</a></li>
+        <li><a href="#">API Reference</a></li>
+        <li><a href="#">Changelog</a></li>
+        <li><a href="#">GitHub</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Company</div>
+      <ul>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Blog</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 Lime Studio. All rights reserved.</div>
+    <div class="footer-socials">
+      <a href="#">Twitter</a>
+      <a href="#">Discord</a>
+      <a href="#">GitHub</a>
+      <a href="#">YouTube</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+  });
+  (function animRing() {
+    rx += (mx - rx) * 0.15; ry += (my - ry) * 0.15;
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(animRing);
+  })();
+  document.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('mouseenter', () => { cursor.style.width = '20px'; cursor.style.height = '20px'; cursor.style.background = 'var(--cyan)'; });
+    el.addEventListener('mouseleave', () => { cursor.style.width = '12px'; cursor.style.height = '12px'; cursor.style.background = 'var(--lime)'; });
+  });
+
+  // Scroll reveal
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
